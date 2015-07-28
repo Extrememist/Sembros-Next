@@ -277,7 +277,7 @@ Value getwork(const Array& params, bool fHelp)
         pblock->vtx[0].vin[0].scriptSig = mapNewBlock[pdata->hashMerkleRoot].second;
         pblock->hashMerkleRoot = pblock->BuildMerkleTree();
         if(!pblock->SignWorkBlock(*pwalletMain))
-             throw JSONRPCError(-100, "Unable to sign block, wallet locked?");'
+             throw JSONRPCError(-100, "Unable to sign block, wallet locked?");
          
         return CheckWork(pblock, *pwalletMain, reservekey);
     }
