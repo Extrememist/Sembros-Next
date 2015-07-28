@@ -46,7 +46,6 @@ void WalletTxToJSON(const CWalletTx& wtx, Object& entry)
     }
     entry.push_back(Pair("txid", wtx.GetHash().GetHex()));
     entry.push_back(Pair("time", (boost::int64_t)wtx.GetTxTime()));
-    entry.push_back(Pair("tx-comment", wtx.strTxComment));
     entry.push_back(Pair("timereceived", (boost::int64_t)wtx.nTimeReceived));
     BOOST_FOREACH(const PAIRTYPE(string,string)& item, wtx.mapValue)
         entry.push_back(Pair(item.first, item.second));
@@ -284,7 +283,7 @@ Value sendtoaddress(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 2 || params.size() > 4)
         throw runtime_error(
-            "sendtoaddress <sembrosaddress> <amount> [comment] [comment-to]\n"
+            "sendtoaddress <sembrosaddress> <amount> [comment] [comment-to][tx-comment]\n"
             "<amount> is a real and is rounded to the nearest 0.000001"
             + HelpRequiringPassphrase());
 
@@ -657,7 +656,7 @@ Value sendfrom(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 3 || params.size() > 6)
         throw runtime_error(
-            "sendfrom <fromaccount> <tosembrosaddress> <amount> [minconf=1] [comment] [comment-to]\n"
+            "sendfrom <fromaccount> <tosembrosaddress> <amount> [minconf=1] [comment] [comment-to] [tx-comment]\n"
             "<amount> is a real and is rounded to the nearest 0.000001"
             + HelpRequiringPassphrase());
 
@@ -680,7 +679,7 @@ Value sendfrom(const Array& params, bool fHelp)
         wtx.mapValue["comment"] = params[4].get_str();
     if (params.size() > 5 && params[5].type() != null_type && !params[5].get_str().empty())
         wtx.mapValue["to"]      = params[5].get_str();
-
+    
     std::string txcomment;
     if((params.size() > 6) && (params[6].type() != null_type) && !params[6].get_str().empty()) {
         txcomment = params[6].get_str();
@@ -707,7 +706,7 @@ Value sendmany(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 2 || params.size() > 4)
         throw runtime_error(
-            "sendmany <fromaccount> {address:amount,...} [minconf=1] [comment]\n"
+            "sendmany <fromaccount> {address:amount,...} [minconf=1] [comment] [tx-comment]\n"
             "amounts are double-precision floating point numbers"
             + HelpRequiringPassphrase());
 
@@ -718,9 +717,9 @@ Value sendmany(const Array& params, bool fHelp)
         nMinDepth = params[2].get_int();
 
     CWalletTx wtx;
-    wtx.strFromAccount = strAccount;
     std::string strTxComment;
-    if((params.size() > 3) && (params[3].type() != null_type) && !params[3].get_str().empty())
+    wtx.strFromAccount = strAccount;
+         if((params.size() > 3) && (params[3].type() != null_type) && !params[3].get_str().empty())
       wtx.mapValue["comment"] = params[3].get_str();
     if((params.size() > 4) && (params[4].type() != null_type) && !params[4].get_str().empty())
       strTxComment = params[4].get_str();
@@ -1377,7 +1376,7 @@ Value keypoolrefill(const Array& params, bool fHelp)
 void ThreadTopUpKeyPool(void* parg)
 {
     // Make this thread recognisable as the key-topping-up thread
-    RenameThread("bitcoin-key-top");
+    RenameThread("smbr-key-top");
 
     pwalletMain->TopUpKeyPool();
 }
@@ -1385,7 +1384,7 @@ void ThreadTopUpKeyPool(void* parg)
 void ThreadCleanWalletPassphrase(void* parg)
 {
     // Make this thread recognisable as the wallet relocking thread
-    RenameThread("bitcoin-lock-wa");
+    RenameThread("smbr-lock-wa");
 
     int64 nMyWakeTime = GetTimeMillis() + *((int64*)parg) * 1000;
 
@@ -1628,8 +1627,8 @@ Value validatepubkey(const Array& params, bool fHelp)
 {
     if (fHelp || !params.size() || params.size() > 2)
         throw runtime_error(
-            "validatepubkey <sembrospubkey>\n"
-            "Return information about <sembrospubkey>.");
+            "validatepubkey <novacoinpubkey>\n"
+            "Return information about <novacoinpubkey>.");
 
     std::vector<unsigned char> vchPubKey = ParseHex(params[0].get_str());
     CPubKey pubKey(vchPubKey);

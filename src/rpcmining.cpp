@@ -26,20 +26,18 @@ Value getmininginfo(const Array& params, bool fHelp)
     obj.push_back(Pair("blocks",        (int)nBestHeight));
     obj.push_back(Pair("currentblocksize",(uint64_t)nLastBlockSize));
     obj.push_back(Pair("currentblocktx",(uint64_t)nLastBlockTx));
-    obj.push_back(Pair("difficulty",    (double)GetDifficulty()));
-
-    obj.push_back(Pair("netmhashps",     GetPoWMHashPS()));
-    obj.push_back(Pair("netstakeweight", GetPoSKernelPS()));
     obj.push_back(Pair("errors",        GetWarnings("statusbar")));
-    obj.push_back(Pair("pooledtx",      (uint64_t)mempool.size()));
 
+    obj.push_back(Pair("generate",      GetBoolArg("-gen")));
+    obj.push_back(Pair("genproclimit",  (int)GetArg("-genproclimit", -1)));
     obj.push_back(Pair("stakeweight",  (uint64_t)nWeight));
     obj.push_back(Pair("minweight",    (uint64_t)nMinWeight));
     obj.push_back(Pair("maxweight",    (uint64_t)nMaxWeight));
 
-    obj.push_back(Pair("stakeinterest",    (uint64_t)GetProofOfStakeReward(0, GetLastBlockIndex(pindexBest, true)->nBits, GetLastBlockIndex(pindexBest, true)->nTime, true)));
+    obj.push_back(Pair("pooledtx",      (uint64_t)mempool.size()));
     obj.push_back(Pair("testnet",       fTestNet));
     return obj;
+    
 }
 
 Value getworkex(const Array& params, bool fHelp)
@@ -51,10 +49,10 @@ Value getworkex(const Array& params, bool fHelp)
         );
 
     if (vNodes.empty())
-        throw JSONRPCError(-9, "Sembros is not connected!");
+        throw JSONRPCError(-9, "SembrosCoin is not connected!");
 
     if (IsInitialBlockDownload())
-        throw JSONRPCError(-10, "Sembros is downloading blocks...");
+        throw JSONRPCError(-10, "SembrosCoin is downloading blocks...");
 
     typedef map<uint256, pair<CBlock*, CScript> > mapNewBlock_t;
     static mapNewBlock_t mapNewBlock;
@@ -163,10 +161,9 @@ Value getworkex(const Array& params, bool fHelp)
             CDataStream(coinbase, SER_NETWORK, PROTOCOL_VERSION) >> pblock->vtx[0]; // FIXME - HACK!
 
         pblock->hashMerkleRoot = pblock->BuildMerkleTree();
-
         if(!pblock->SignWorkBlock(*pwalletMain))
-          throw JSONRPCError(-100, "Unable to sign block, wallet locked?");
-
+            throw JSONRPCError(-100, "Unable to sign block, wallet locked?");
+        
         return CheckWork(pblock, *pwalletMain, reservekey);
     }
 }
@@ -185,10 +182,10 @@ Value getwork(const Array& params, bool fHelp)
             "If [data] is specified, tries to solve the block and returns true if it was successful.");
 
     if (vNodes.empty())
-        throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Sembros is not connected!");
+        throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "SembrosCoin is not connected!");
 
     if (IsInitialBlockDownload())
-        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Sembros is downloading blocks...");
+        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "SembrosCoin is downloading blocks...");
 
     typedef map<uint256, pair<CBlock*, CScript> > mapNewBlock_t;
     static mapNewBlock_t mapNewBlock;    // FIXME: thread safety
@@ -279,10 +276,9 @@ Value getwork(const Array& params, bool fHelp)
         pblock->nNonce = pdata->nNonce;
         pblock->vtx[0].vin[0].scriptSig = mapNewBlock[pdata->hashMerkleRoot].second;
         pblock->hashMerkleRoot = pblock->BuildMerkleTree();
-
         if(!pblock->SignWorkBlock(*pwalletMain))
-          throw JSONRPCError(-100, "Unable to sign block, wallet locked?");
-
+             throw JSONRPCError(-100, "Unable to sign block, wallet locked?");'
+         
         return CheckWork(pblock, *pwalletMain, reservekey);
     }
 }
@@ -328,10 +324,10 @@ Value getblocktemplate(const Array& params, bool fHelp)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid mode");
 
     if (vNodes.empty())
-        throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Bitcoin is not connected!");
+        throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Sembroscoin is not connected!");
 
     if (IsInitialBlockDownload())
-        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Bitcoin is downloading blocks...");
+        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Sembroscoin is downloading blocks...");
 
     static CReserveKey reservekey(pwalletMain);
 
@@ -458,10 +454,10 @@ Value submitblock(const Array& params, bool fHelp)
     catch (std::exception &e) {
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block decode failed");
     }
-
     if(!block.SignWorkBlock(*pwalletMain))
-      throw JSONRPCError(-100, "Unable to sign block, wallet locked?");
-
+        throw JSONRPCError(-100, "Unable to sign block, wallet locked?");
+    
+    
     bool fAccepted = ProcessBlock(NULL, &block);
     if (!fAccepted)
         return "rejected";
